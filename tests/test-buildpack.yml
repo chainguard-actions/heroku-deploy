@@ -1,0 +1,29 @@
+name: Test deploy with buildpack input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          heroku_api_key: fake-api-key-for-testing
+          heroku_email: test@example.com
+          heroku_app_name: my-test-app-buildpack
+          buildpack: heroku/nodejs
+          justlogin: "true"
+        continue-on-error: true
+      - name: Assert action ran (status output present)
+        env:
+          STATUS: ${{ steps.action.outputs.status }}
+        run: |
+          echo "status: $STATUS"
+          # The action will fail to authenticate with fake credentials,
+          # but we verify it ran and produced a status output
+          if [ -z "$STATUS" ]; then
+            echo "FAIL: expected status output to be set"
+            exit 1
+          fi
+          echo "PASS: status output is set to '$STATUS'"
