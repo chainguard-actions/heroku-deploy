@@ -1,0 +1,31 @@
+name: Test docker build args input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          heroku_api_key: fake-api-key-for-testing
+          heroku_email: test@example.com
+          heroku_app_name: my-test-app-docker
+          usedocker: "true"
+          docker_heroku_process_type: "web"
+          docker_build_args: |
+            NODE_ENV=production
+            PORT=3000
+          dontautocreate: "true"
+      - name: Assert status output is set
+        env:
+          STATUS: ${{ steps.action.outputs.status }}
+        run: |
+          echo "status: $STATUS"
+          if [ -z "$STATUS" ]; then
+            echo "FAIL: expected status output to be set"
+            exit 1
+          fi
+          echo "PASS: status output is '$STATUS'"
